@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "test-3bb91"
+  },
+  "targets": {
+    "test-3bb91": {
+      "hosting": {
+        "app": [
+          "poc-concurrence"
+        ]
+      }
+    }
+  }
+}

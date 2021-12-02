@@ -4,9 +4,10 @@
       <div class="column is-4 hero is-fullheight">
         <div class="hero-head mb-2">
           <b-field label="Recherche">
-            <b-field>
-              <b-input placeholder="recherche" v-model="search" @input="actionChange"></b-input>
-            </b-field>
+            <b-input
+              id="input-searchBox"
+              placeholder="recherche">
+            </b-input>
           </b-field>
         </div>
         <div class="hero-body p-0 is-relative">
@@ -70,7 +71,6 @@
 </template>
 
 <script>
-import debounce from 'lodash/debounce';
 import { ZOOM_DEFAULT, CENTER_DEFAULT, MARKER_POINT_NOIR  } from '@/configuration/configurationCarte';
 
 export default {
@@ -78,7 +78,6 @@ export default {
     return {
       map: null,
       markers: [],
-      search: null,
       constantes: {
         CENTER_DEFAULT,
         ZOOM_DEFAULT,
@@ -87,47 +86,30 @@ export default {
     }
   },
   methods: {
-    actionChange: debounce( async function () {
-      if (this.search) this.initialize()
-    }, 500),
-    initialize() {
-      this.markers = []
-      const markers = []
+    init() {
+      const input = document.getElementById('input-searchBox');
+      const searchBox = new google.maps.places.SearchBox(input);
+      this.map.addListener('bounds_changed', () => {
+        searchBox.setBounds(this.map.getBounds());
+      });
 
-      const request = {
-        location: new google.maps.LatLng(CENTER_DEFAULT.lat, CENTER_DEFAULT.lng),
-        radius: '50000',
-        query: this.search
-      };
-
-      const loadingComponent = this.$buefy.loading.open({ container: this.$el });
-      const service = new google.maps.places.PlacesService(this.map);
-      service.textSearch(request, (results, status, pagination) => {
-        if (status == google.maps.places.PlacesServiceStatus.OK) {
-          results.forEach(p => {
-            markers.push({
-              position: {
-                lat: p.geometry.location.lat(),
-                lng: p.geometry.location.lng(),
-              },
-              animation: google.maps.Animation.DROP,
-              url: p.photos ? p.photos[0].getUrl() : '',
-              name: p.name,
-              adresse: p.formatted_address,
-              icon: p.icon,
-              types: p.types
-            })
-          });
-          if (pagination.hasNextPage) {
-            pagination.nextPage();
-          } else {
-            loadingComponent.close();
-            this.markers = markers;
-            this.levelZoom()
-          }
-        } else {
-          loadingComponent.close();
-        }
+      searchBox.addListener('places_changed', () => {
+        this.markers = []
+        const places = searchBox.getPlaces();
+        places.forEach(p => {
+          this.markers.push({
+            position: {
+              lat: p.geometry.location.lat(),
+              lng: p.geometry.location.lng(),
+            },
+            animation: google.maps.Animation.DROP,
+            url: p.photos ? p.photos[0].getUrl() : '',
+            name: p.name,
+            adresse: p.formatted_address,
+            icon: p.icon,
+            types: p.types
+          })
+        });
       });
     },
     async levelZoom() {
@@ -146,6 +128,7 @@ export default {
   },
   async mounted() {
     this.map = await this.$refs.carto.$mapPromise;
+    this.init()
   }
 }
 </script>

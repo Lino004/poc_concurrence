@@ -89,6 +89,7 @@ export default {
     init() {
       const input = document.getElementById('input-searchBox');
       const searchBox = new google.maps.places.SearchBox(input);
+
       this.map.addListener('bounds_changed', () => {
         searchBox.setBounds(this.map.getBounds());
       });
@@ -110,11 +111,8 @@ export default {
             types: p.types
           })
         });
+        this.fitBounds();
       });
-    },
-    async levelZoom() {
-      await this.$refs.carto.$mapPromise;
-      await this.fitBounds();
     },
     async fitBounds() {
       const bounds = new google.maps.LatLngBounds();
@@ -123,12 +121,12 @@ export default {
           bounds.extend(el.position);
         })
       }
-      this.$refs.carto.fitBounds(bounds);
+      this.map.fitBounds(bounds);
     },
   },
   async mounted() {
     this.map = await this.$refs.carto.$mapPromise;
-    this.init()
+    this.init();
   }
 }
 </script>

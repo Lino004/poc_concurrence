@@ -11,8 +11,6 @@ Vue.use(VueGoogleMaps, {
   load: {
     key: CLE_GOOGLE_API,
     libraries: 'places,drawing,visualization',
-    region: 'FR',
-    language: 'fr',
   },
 });
 
